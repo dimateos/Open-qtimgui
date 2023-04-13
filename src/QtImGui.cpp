@@ -188,4 +188,14 @@ void render(RenderRef ref)
   }
 }
 
+void finalize(RenderRef ref)
+{
+  if (!ref) {
+    ImGuiRenderer::deleteInstance();
+  } else {
+    auto wrapper = reinterpret_cast<QWindowWrapper*>(ref);
+    delete wrapper;
+  }
+}
+
 } // namespace QtImGui

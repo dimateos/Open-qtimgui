@@ -512,11 +512,17 @@ bool ImGuiRenderer::eventFilter(QObject *watched, QEvent *event)
 }
 
 ImGuiRenderer* ImGuiRenderer::instance() {
-    static ImGuiRenderer* instance = nullptr;
     if (!instance) {
         instance = new ImGuiRenderer();
     }
     return instance;
+}
+
+void ImGuiRenderer::deleteInstance() {
+    if (instance) {
+        delete instance;
+        instance = nullptr;
+    }
 }
 
 } // namespace QtImGui
