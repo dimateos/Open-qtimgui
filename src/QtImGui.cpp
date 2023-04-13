@@ -1,10 +1,8 @@
 #include "QtImGui.h"
 
 #include "ImGuiRenderer.h"
-#include <QWindow>
-#ifdef QT_WIDGETS_LIB
-#include <QWidget>
-#endif
+#include <QtGui/QWindow>
+#include <QtWidgets/QWidget>
 
 namespace QtImGui {
 
@@ -15,7 +13,7 @@ public:
     : r(r)
   {}
   ~QWindowWrapper() {
-    if (r && (r != ImGuiRenderer::instance())) {
+    if (r && (r != ImGuiRenderer::getInstance())) {
       delete r;
     }
   }
@@ -27,8 +25,6 @@ public:
 private:
   ImGuiRenderer* r;
 };
-
-#ifdef QT_WIDGETS_LIB
 
 namespace {
 
@@ -87,8 +83,8 @@ private:
 
 RenderRef initialize(QWidget *window, bool defaultRender) {
   if (defaultRender) {
-    auto* wrapper = new QWidgetWindowWrapper(window, ImGuiRenderer::instance());
-    ImGuiRenderer::instance()->initialize(wrapper);
+    auto* wrapper = new QWidgetWindowWrapper(window, ImGuiRenderer::getInstance());
+    ImGuiRenderer::getInstance()->initialize(wrapper);
     return reinterpret_cast<RenderRef>(dynamic_cast<QWindowWrapper*>(wrapper));
   } else {
     auto* render = new ImGuiRenderer();
@@ -97,8 +93,6 @@ RenderRef initialize(QWidget *window, bool defaultRender) {
     return reinterpret_cast<RenderRef>(dynamic_cast<QWindowWrapper*>(wrapper));
   }
 }
-
-#endif // QT_WIDGETS_LIB
 
 namespace {
 
@@ -157,8 +151,8 @@ private:
 
 RenderRef initialize(QWindow* window, bool defaultRender) {
   if (defaultRender) {
-    auto* wrapper = new QWindowWindowWrapper(window, ImGuiRenderer::instance());
-    ImGuiRenderer::instance()->initialize(wrapper);
+    auto* wrapper = new QWindowWindowWrapper(window, ImGuiRenderer::getInstance());
+    ImGuiRenderer::getInstance()->initialize(wrapper);
     return reinterpret_cast<RenderRef>(dynamic_cast<QWindowWrapper*>(wrapper));
   }
   else {
@@ -171,7 +165,7 @@ RenderRef initialize(QWindow* window, bool defaultRender) {
 
 void newFrame(RenderRef ref) {
   if (!ref) {
-    ImGuiRenderer::instance()->newFrame();
+    ImGuiRenderer::getInstance()->newFrame();
   } else {
     auto wrapper = reinterpret_cast<QWindowWrapper*>(ref);
     wrapper->newFrame();
@@ -181,7 +175,7 @@ void newFrame(RenderRef ref) {
 void render(RenderRef ref)
 {
   if (!ref) {
-    ImGuiRenderer::instance()->render();
+    ImGuiRenderer::getInstance()->render();
   } else {
     auto wrapper = reinterpret_cast<QWindowWrapper*>(ref);
     wrapper->render();

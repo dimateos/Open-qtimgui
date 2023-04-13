@@ -1,9 +1,10 @@
 #pragma once
 
-#include <QOpenGLExtraFunctions>
-#include <QObject>
-#include <QPoint>
-#include <imgui.h>
+#include <QtGui/QOpenGLExtraFunctions>
+#include <QtCore/QObject>
+#include <QtCore/QPoint>
+
+#include "imgui.h"
 #include <memory>
 
 class QMouseEvent;
@@ -27,14 +28,14 @@ public:
 };
 
 class ImGuiRenderer : public QObject, QOpenGLExtraFunctions {
-    Q_OBJECT
+    // Q_OBJECT //?? cannot use MOC precompiler -> will lead to missing behavior?
 public:
     void initialize(WindowWrapper *window);
     void newFrame();
     void render();
     bool eventFilter(QObject *watched, QEvent *event);
 
-    static ImGuiRenderer *instance();
+    static ImGuiRenderer* getInstance();
     static void deleteInstance();
 
 public:

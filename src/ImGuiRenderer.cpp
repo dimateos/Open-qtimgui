@@ -1,24 +1,18 @@
 #include "ImGuiRenderer.h"
 
-#include <QDateTime>
-#include <QGuiApplication>
-#include <QMouseEvent>
-#include <QClipboard>
-#include <QCursor>
+#include <QtCore/QDateTime>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QClipboard>
+#include <QtGui/QCursor>
 
-#ifdef ANDROID
-#define GL_VERTEX_ARRAY_BINDING           0x85B5 // Missing in android as of May 2020
-#define USE_GLSL_ES
-#endif
+#include "QtKeyMappings.h"
 
 #ifdef USE_GLSL_ES
 #define IMGUIRENDERER_GLSL_VERSION "#version 300 es\n"
 #else
 #define IMGUIRENDERER_GLSL_VERSION "#version 330\n"
 #endif
-
-// Direclty including windows key mappings, plus not handling imgui version to support older ones
-#include "QtKeyMappings.h"
 
 namespace QtImGui {
 
@@ -41,6 +35,8 @@ const QHash<ImGuiMouseCursor, Qt::CursorShape> cursorMap = {
 QByteArray g_currentClipboardText;
 
 } // namespace
+
+ImGuiRenderer* ImGuiRenderer::instance = nullptr;
 
 void ImGuiRenderer::initialize(WindowWrapper *window) {
     m_window.reset(window);
@@ -161,6 +157,7 @@ void ImGuiRenderer::renderDrawList(ImDrawData *draw_data)
 
                 // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
                 glScissor((int)clip_min.x, (int)(fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y));
+                //glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
 
                  // Bind texture, Draw
                 glBindTexture(GL_TEXTURE_2D, (GLuint)(size_t)pcmd->TextureId);
@@ -315,14 +312,13 @@ void ImGuiRenderer::newFrame()
     io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f/60.0f);
     if (io.DeltaTime <= 0.0f) io.DeltaTime = 0.00001f;
     g_Time = current_time;
-    
-    
+
+
     // If ImGui wants to set cursor position (for example, during navigation by using keyboard)
     // we need to do it here (before getting `QCursor::pos()` below).
     setCursorPos(io);
 
     // Setup inputs
-    // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
     if (m_window->isActive())
     {
         const QPoint pos = m_window->mapFromGlobal(QCursor::pos());
@@ -343,9 +339,9 @@ void ImGuiRenderer::newFrame()
     g_MouseWheelH = 0;
     g_MouseWheel = 0;
 
-    
+
     updateCursorShape(io);
-    
+
 
     // Start the frame
     ImGui::NewFrame();
@@ -455,7 +451,7 @@ void ImGuiRenderer::updateCursorShape(const ImGuiIO& io)
     else
     {
         // Show OS mouse cursor
-        
+
         // Translate `ImGuiMouseCursor` into `Qt::CursorShape` and show it, if we can
         const auto cursor_it = cursorMap.constFind( imgui_cursor );
         if(cursor_it != cursorMap.constEnd()) // `Qt::CursorShape` found for `ImGuiMouseCursor`
@@ -478,7 +474,7 @@ void ImGuiRenderer::setCursorPos(const ImGuiIO& io)
     // NOTE: This code will be executed, only if the following flags have been set:
     // - backend flag: `ImGuiBackendFlags_HasSetMousePos`      - enabled
     // - config  flag: `ImGuiConfigFlags_NavEnableSetMousePos` - enabled
-    
+
 #ifndef QT_NO_CURSOR
     if(io.WantSetMousePos) {
         m_window->setCursorPos({(int)io.MousePos.x, (int)io.MousePos.y});
@@ -511,7 +507,7 @@ bool ImGuiRenderer::eventFilter(QObject *watched, QEvent *event)
   return QObject::eventFilter(watched, event);
 }
 
-ImGuiRenderer* ImGuiRenderer::instance() {
+ImGuiRenderer* ImGuiRenderer::getInstance() {
     if (!instance) {
         instance = new ImGuiRenderer();
     }
