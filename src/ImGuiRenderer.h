@@ -35,6 +35,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event);
 
     static ImGuiRenderer *instance();
+    static void deleteInstance();
 
 public:
     ImGuiRenderer();
@@ -51,6 +52,8 @@ private:
     void renderDrawList(ImDrawData *draw_data);
     bool createFontsTexture();
     bool createDeviceObjects();
+
+    static ImGuiRenderer* instance;
 
     std::unique_ptr<WindowWrapper> m_window;
     double       g_Time = 0.0f;
